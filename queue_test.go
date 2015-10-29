@@ -3,6 +3,7 @@ package gommons
 import (
 	"container/heap"
 	"runtime"
+	"strconv"
 	"testing"
 	"time"
 
@@ -22,13 +23,13 @@ func TestQueue(t *testing.T) {
 			heap.Push(queue, &Event{data: 3})
 
 			data := heap.Pop(queue).(*Event)
-			g.Assert(data != nil).IsTrue()
+			g.Assert(data.data).Equal(1)
 
 			data = heap.Pop(queue).(*Event)
-			g.Assert(data != nil).IsTrue()
+			g.Assert(data.data).Equal(2)
 
 			data = heap.Pop(queue).(*Event)
-			g.Assert(data != nil).IsTrue()
+			g.Assert(data.data).Equal(3)
 
 			d := heap.Pop(queue)
 			g.Assert(d == nil).IsTrue()
@@ -69,7 +70,9 @@ func TestQueueConcurrency(t *testing.T) {
 			g.Assert(len(buffer) >= 1000).IsTrue()
 		})
 
-		g.It("Should test concurrency with more than 1 CPU", func() {
+		strCpus := strconv.Itoa(runtime.NumCPU())
+
+		g.It("Should test concurrency with more than 1 CPU ("+strCpus+")", func() {
 			cpus := runtime.NumCPU()
 			if cpus == 1 {
 				cpus = 2
