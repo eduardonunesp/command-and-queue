@@ -1,4 +1,4 @@
-package command_and_queue
+package gommons
 
 import (
 	"runtime"
@@ -55,8 +55,43 @@ func TestQueue(t *testing.T) {
 func TestQueueConcurrency(t *testing.T) {
 	g := Goblin(t)
 	g.Describe("Concurrency test", func() {
-		g.It("Should create queue ", func() {
-			runtime.GOMAXPROCS(runtime.NumCPU())
+		g.It("Should test concurrency with 1 CPU", func() {
+			runtime.GOMAXPROCS(1)
+			q := NewQueue()
+			g.Assert(q != nil).IsTrue()
+
+			buffer := []int{}
+
+			for i := 0; i < 1000; i++ {
+				go func() {
+					q.Push(i)
+				}()
+			}
+
+			for {
+				go func() {
+					data := q.Pop()
+					if data != nil {
+						buffer = append(buffer, data.(int))
+					}
+				}()
+
+				time.Sleep(time.Millisecond)
+				if len(buffer) >= 1000 {
+					break
+				}
+			}
+
+			g.Assert(len(buffer) >= 1000).IsTrue()
+		})
+
+		g.It("Should test concurrency with 2 >= CPUs", func() {
+			cpus := runtime.NumCPU()
+			if cpus == 1 {
+				cpus = 2
+			}
+
+			runtime.GOMAXPROCS(cpus)
 			q := NewQueue()
 			g.Assert(q != nil).IsTrue()
 
